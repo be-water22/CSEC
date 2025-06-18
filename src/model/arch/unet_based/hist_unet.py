@@ -7,7 +7,7 @@ import torch.nn.functional as F
 from model.arch.drconv import DRConv2d, HistDRConv2d
 from model.arch.hist import get_hist, get_hist_conv, pack_tensor
 
-
+# a CNN with 2 convolutional layer 
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None):
         super().__init__()
@@ -25,7 +25,7 @@ class DoubleConv(nn.Module):
     def forward(self, x):
         return self.double_conv(x)
 
-
+# DR = Dynamic Region or some Domain-specific Region-aware convolution
 class DRDoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None, **kargs):
         super().__init__()
@@ -73,7 +73,6 @@ class DRDoubleConv(nn.Module):
         if DRCONV_POSITION_[1]:
             self.guide_features.append(self.double_conv[3].guide_feature)
         return res
-
 
 class HistDRDoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None):
@@ -171,7 +170,7 @@ class HistGuidedDRDoubleConv(nn.Module):
             self.guide_features.append(self.conv2.guide_feature)
 
         return self.inter2(y)
-
+        
 
 class Up(nn.Module):
     def __init__(self, in_channels, out_channels, bilinear=True, **kargs):
