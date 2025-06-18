@@ -7,7 +7,6 @@ import torch.nn.functional as F
 from model.arch.drconv import DRConv2d, HistDRConv2d
 from model.arch.hist import get_hist, get_hist_conv, pack_tensor
 
-
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None):
         super().__init__()
