@@ -14,15 +14,16 @@ from globalenv import *
 
 from .augmentation import parseAugmentation
 
-
+# this function returns a list of full file paths by combining basedir with each relative path in the text file.
 def parse_item_list_txt(txtpath):
     """
     Parse txt file containing all file paths. Each line one file.
     """
     txt = Path(txtpath)
     basedir = txt.parent
-    content = txt.open().read().splitlines()
-
+    content = txt.open().read().splitlines() # returns an array of different files in txt folder 
+    # Reads all lines from the file as a list. Each line represents a relative file path (like images/cat.jpg).
+    
     sample = content[0]
     if sample.split("/")[0] in str(basedir):
         raise NotImplementedError(
@@ -33,6 +34,13 @@ def parse_item_list_txt(txtpath):
         return [str(basedir / x) for x in content]
 
 
+# This function is a flexible utility that loads file paths based on input patterns. 
+"""
+It supports: 
+A .txt file listing file paths
+A single glob string (e.g., "images/*.png")
+A list of glob patterns (e.g., ["img/*.jpg", "data/*.png"])
+"""
 def load_from_glob_list(globs):
     if type(globs) == str:
         if globs.endswith(".txt"):
@@ -73,7 +81,7 @@ class ImagesDataset(torch.utils.data.Dataset):
         self.transform = transform
         self.opt = opt
 
-        gt_globs = opt[ds_type][GT]
+        gt_globs = opt[ds_type][GT] # given in config.yaml 
         input_globs = opt[ds_type][INPUT]
         self.have_gt = True if gt_globs else False
 
@@ -83,15 +91,19 @@ class ImagesDataset(torch.utils.data.Dataset):
         )
 
         # load input images:
-        self.input_list = load_from_glob_list(input_globs)
+        self.input_list = load_from_glob_list(input_globs) 
+        # input_globs is the list of all input images (in .jpg or .png format) 
 
         # load GT images:
         if self.have_gt:
-            self.gt_list = load_from_glob_list(gt_globs)
+            self.gt_list = load_from_glob_list(gt_globs) # if gt of that ds exist then load it as well 
             try:
                 assert len(self.input_list) == len(self.gt_list)
             except:
                 ipdb.set_trace()
+                # a debugging command that pauses your Python program and drops you into an interactive debugging session 
+                # at that exact point in the code — similar to a breakpoint. It allows you to inspect variables, step through code, 
+                # and execute Python commands directly in the terminal while paused.
                 raise AssertionError(
                     f"In [{ds_type}]: len(input_images) ({len(self.input_list)}) != len(gt_images) ({len(self.gt_list)})! "
                 )
@@ -108,6 +120,8 @@ class ImagesDataset(torch.utils.data.Dataset):
     def __len__(self):
         return len(self.input_list)
 
+    # It is used to save tensor data as images for debugging purposes — to visually inspect what’s going into
+    # and coming out of a model or pipeline.
     def debug_save_item(self, input, gt):
         # home = os.environ['HOME']
         util.saveTensorAsImg(input, "i.png")
@@ -130,12 +144,16 @@ class ImagesDataset(torch.utils.data.Dataset):
         # random.seed(GLOBAL_SEED)
         seed = random.randint(0, 100000)
         input_img = cv2.imread(self.input_list[idx])[:, :, [2, 1, 0]]
-        if self.have_gt and self.gt_list[idx].endswith(".hdr"):
-            input_img = torch.Tensor(input_img / 255).permute(2, 0, 1)
+        # OpenCV loads images in BGR format, so [:, :, [2, 1, 0]] converts it to RGB 
+        
+        if self.have_gt and self.gt_list[idx].endswith(".hdr"): # hdr = high dynamic range 
+            input_img = torch.Tensor(input_img / 255).permute(2, 0, 1) 
+            # .permute(2, 0, 1) to change shape from [H, W, C] to [C, H, W], which is the standard format for PyTorch models.
         else:
             input_img = augment_one_img(
                 input_img, seed, transform=self.transform
             )
+        # how INPUT is define in globalenv.py ? 
         res_item[INPUT] = input_img
 
         if self.have_gt:
@@ -175,7 +193,7 @@ class DataModule(LightningDataModule):
             self.valid_transform = self.transform
         else:
             self.valid_transform = torchvision.transforms.ToTensor()
-
+            
         self.training_dataset = None
         self.valid_dataset = None
         self.test_dataset = None
@@ -235,7 +253,8 @@ class DataModule(LightningDataModule):
             )
 
     def train_dataloader(self):
-        if self.training_dataset:
+        # for batch in dataloader: so dataloader is like an instance that can be used anytime 
+        if self.training_dataset: 
             trainloader = torch.utils.data.DataLoader(
                 self.training_dataset,
                 batch_size=self.opt[BATCHSIZE],
