@@ -7,6 +7,13 @@ import torch.nn.functional as F
 from model.arch.drconv import DRConv2d, HistDRConv2d
 from model.arch.hist import get_hist, get_hist_conv, pack_tensor
 
+"""
+U-net based feature extractor to extract meaningful features from input data. It achieves this by combining an encoder 
+(contracting path, downsampling) and a decoder (expanding path, upsampling to reconstruct the image using known spatial features) 
+with skip connections. The encoder progressively extracts features through convolutional and pooling layers, while the decoder 
+reconstructs the spatial information through upsampling and deconvolution,effectively localizing features. 
+"""
+
 # a CNN with 2 convolutional layer 
 class DoubleConv(nn.Module):
     def __init__(self, in_channels, out_channels, mid_channels=None):
