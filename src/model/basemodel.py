@@ -86,7 +86,7 @@ class BaseModel(pl.core.LightningModule):
     @staticmethod
     def save_img_batch(batch, dirpath, fname, save_num=1):
         util.mkdir(dirpath)
-        imgpath = osp.join(dirpath, fname)
+        imgpath = osp.join(dirpath, fname) # osp.join() == os.path.join() 
 
         # If you want to visiual a single image, call .unsqueeze(0)
         assert len(batch.shape) == 4
@@ -95,6 +95,7 @@ class BaseModel(pl.core.LightningModule):
     def calc_and_log_losses(self, loss_lambda_map):
         logged_losses = {}
         loss = 0
+        # self.opt[RUNTIME] maps to csec.release ..[LOSS] maps to pairs (key, values) like ltv:0 and so on 
         for loss_name, loss_weight in self.opt[RUNTIME][LOSS].items():
             if loss_weight:
                 try:
@@ -148,7 +149,7 @@ class BaseModel(pl.core.LightningModule):
                 gt_fname = osp.splitext(osp.basename(gt_fname))[0]
                 gt_fname = prefix + gt_fname + ext
 
-            # ****** public buffer opration ******
+            # ****** public buffer operation ******
             LOGGER_BUFFER_LOCK = True
             for name, batch in img_batch_dict.items():
                 if batch is None or batch is False:
