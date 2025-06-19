@@ -3,6 +3,11 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+"""
+what i think is this code is used to implement color Modulation (COMO) Module to modulate the brightness 
+and color of the input image and produce the final output image Iy, based on the learned offsets 
+OB/OD (brighten & darken offset) between brightened features FB/darkened features FD and pseudo normal features FN
+"""
 
 class CrossNonLocalBlock(nn.Module):
     def __init__(self, in_channels, inter_channels):
@@ -206,7 +211,7 @@ class CrossNonLocalBlock(nn.Module):
         f_x = self._DotKernel(x)
         f_b = self._DotKernel(ob)
         f_d = self._DotKernel(od)
-
+        
         x_self = (
             torch.matmul(f_x, g_x)
             .permute(0, 2, 1)
