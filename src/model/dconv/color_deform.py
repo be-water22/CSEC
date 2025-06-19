@@ -5,6 +5,10 @@ import torch
 import torch.nn.functional as F
 from torch import nn
 
+"""
+this is a part of color shift estimation module (COSE). p_conv = position conv, c_conv = color conv, m_conv = modulation conv. 
+This produces the brighten & darken offsets (Ob, Od). 
+"""
 
 class ColorDeformConv2d(nn.Module):
     def __init__(
@@ -70,17 +74,20 @@ class ColorDeformConv2d(nn.Module):
 
         b, c, h, w = x.size()
 
+        """
+        ref = Pseudo normal feature Fn, x = brighten/darkened offset feature Fb/Fd. each of dim = B * 3 * H * W 
+        """
         fused = torch.cat([x, ref], dim=1)  # (b, 2c, h, w)
         fused = self.channel_down(fused)  # (b, c, h, w)
         assert (
             fused.shape == x.shape
         ), f"Fused shape {fused.shape} and input shape {x.shape} does not match."
-
+        # ks = kernal size 
         offset = self.p_conv(fused)  # (b, c, h, w) -> (b, 2*ks*ks, h, w)
         if self.modulation:
             m = torch.sigmoid(
                 self.m_conv(fused)
-            )  # (b, c, h, w) -> (b, ks*ks, h, w)
+            )  # (b, c, h, w) -> (b, ks*ks, h, w) ***--> how these dimension are achieved 
         if self.color_deform:
             c_offset = torch.tanh(
                 self.c_conv(fused)
@@ -180,6 +187,7 @@ class ColorDeformConv2d(nn.Module):
 
         return out
 
+    # spatial offsets 
     def _get_p_n(self, N, dtype):
         p_n_x, p_n_y = torch.meshgrid(
             torch.arange(
