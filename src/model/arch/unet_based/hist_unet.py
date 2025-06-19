@@ -12,6 +12,9 @@ U-net based feature extractor to extract meaningful features from input data. It
 (contracting path, downsampling) and a decoder (expanding path, upsampling to reconstruct the image using known spatial features) 
 with skip connections. The encoder progressively extracts features through convolutional and pooling layers, while the decoder 
 reconstructs the spatial information through upsampling and deconvolution,effectively localizing features. 
+
+This extractor finally gives two illumination maps : F(L,U), F(L,O). These indicate the regions affected by under-exposure & over-exposure. 
+------> Finally we get Darkened feature map (Fd) & brightened feature map (Fb). Fd = Ix / F(L,U), Fd = 1 - (1-Ix)/F(L,O). <-----
 """
 
 # a CNN with 2 convolutional layer 
