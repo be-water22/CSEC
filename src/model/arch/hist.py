@@ -44,6 +44,8 @@ def get_hist_conv(n_bins, kernel_size=2, train=False):
     for i in range(conv.weight.shape[1]):
         alpha = kernel_size**2
         #         alpha = 1
+        # [out-channels, in-channels, kernal-height, kernal-weight] 
+        # so it selects the ith input & output channels and fills those channels with 1/alpha. 
         conv.weight.data[i, i, ...] = (
             torch.ones(kernel_size, kernel_size) / alpha
         )
