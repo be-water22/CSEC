@@ -57,9 +57,11 @@ def cuda_tensor_to_ndarray(cuda_tensor):
 
 
 def tensor2pil(img):
-    img = img.squeeze()  # * 0.5 + 0.5
+    # .squeeze() removes any dimensions of size 1 from the tensor 
+    img = img.squeeze()  # * 0.5 + 0.5 
+    # Image.fromarrya() creates a PIL image from the numpy array. 
     return Image.fromarray(
-        img.mul(255)
+        img.mul(255) # each pixel * 255 
         .add_(0.5)
         .clamp_(0, 255)
         .permute(1, 2, 0)
@@ -71,6 +73,7 @@ def tensor2pil(img):
 def save_opt(dirpath, opt):
     save_opt_fpath = dirpath / OPT_FILENAME
 
+    # open the file in write mode 
     with save_opt_fpath.open("w", encoding="utf-8") as f:
         yaml.dump(omega2dict(opt), f, default_flow_style=False)
 
@@ -98,6 +101,7 @@ def saveTensorAsImg(output, path, downsample_factor=False):
         res = []
         for i in range(len(output)):
             res.append(
+                # output[i] is simply an image with dim C * H * W. 
                 saveTensorAsImg(output[i], f"{path}-{i}.png", downsample_factor)
             )
         return res
@@ -115,6 +119,7 @@ def saveTensorAsImg(output, path, downsample_factor=False):
             outImg, (int(w / downsample_factor), int(h / downsample_factor))
         ).astype(np.uint8)
 
+    # saving the outImg to the path 
     cv2.imwrite(path, outImg)
     return outImg
 
@@ -136,11 +141,13 @@ def parse_config(opt, mode):
     print(f'Check runtime config: use "{template_yml_path}" as template.')
     assert template_yml_path.exists()
 
+    #  retrieves a logger object with the name "lightning"
     pl_logger = logging.getLogger("lightning")
     pl_logger.propagate = False
     return opt
+    
 
-
+#  to convert an OmegaConf DictConfig object into a standard Python dictionary
 def omega2dict(opt):
     if type(opt) == omegaconf.DictConfig:
         return omegaconf.OmegaConf.to_container(opt)
@@ -158,7 +165,7 @@ class ImageProcessing(object):
         :rtype:
 
         """
-        img = img.permute(2, 1, 0)
+        img = img.permute(2, 1, 0) 
         shape = img.shape
         img = img.contiguous()
         img = img.view(-1, 3)
@@ -178,7 +185,7 @@ class ImageProcessing(object):
             requires_grad=False,
         ).type_as(img)
 
-        img = torch.matmul(img, rgb_to_xyz)
+        img = torch.matmul(img, rgb_to_xyz) # converted to xyz 
         img = torch.mul(
             img,
             Variable(
@@ -241,7 +248,7 @@ class ImageProcessing(object):
         """
         if img.ndim == 3:
             return np.swapaxes(np.swapaxes(img, 1, 2), 0, 2)
-        elif img.ndim == 4:
+        elif img.ndim == 4: # first dim is batch size 
             return np.swapaxes(np.swapaxes(img, 2, 3), 1, 3)
 
     @staticmethod
@@ -318,6 +325,8 @@ class ImageProcessing(object):
         num_images = image_batchA.shape[0]
         psnr_val = 0.0
 
+        # zip(image_batchA, image_batchB) function in Python is used to combine two or more iterables 
+        # (like lists, tuples, or other sequences) into a single iterable of tuples
         for imageA, imageB in zip(image_batchA, image_batchB):
             if torch.is_tensor(imageA):
                 imageA, imageB = imageA.numpy().astype(
